@@ -6,7 +6,7 @@ require 'bcrypt'
 enable :sessions
 
 get('/') do
-  slim(:register)
+  slim(:home)
 end
 
 get('/showlogin') do
@@ -16,7 +16,7 @@ end
 post('/login') do
   username = params[:username]
   password = params[:password]
-  db = SQLite3::Database.new('db/intresseklubben.db')
+  db = SQLite3::Database.new('db/bs.db')
   db.results_as_hash = true
   usernames = db.execute("SELECT username FROM users")
 
@@ -49,7 +49,7 @@ post('/users/new') do
 
   if password == password_confirm
     password_digest = BCrypt::Password.create(password)
-    db = SQLite3::Database.new('db/intresseklubben.db')
+    db = SQLite3::Database.new('db/bs.db')
     db.execute("INSERT INTO users (username,pwdigest) VALUES (?, ?)",username,password_digest)
     redirect('/')
   else
@@ -57,10 +57,10 @@ post('/users/new') do
   end
 end
 
-get('/index') do
-  db = SQLite3::Database.new("db/intresseklubben.db")
+get('/posts') do
+  db = SQLite3::Database.new("db/bs.db")
   db.results_as_hash = true
   result = db.execute("SELECT * FROM albums")
   p result
-  slim(:"forum/index",locals:{forum:result})
+  slim(:"posts/index",locals:{forum:result})
 end
