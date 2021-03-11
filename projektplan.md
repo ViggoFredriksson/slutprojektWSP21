@@ -2,9 +2,9 @@
 
 ## 1. Projektbeskrivning
 
-Jag bygger en hemsida kallad Intresseklubben där individer kan dela med sig av saker de tycker är måttligt intressanta. 
+Jag bygger en hemsida där individer kan visa upp sina cyklar. 
 
-Användare ska kunna registrera konton på hemsidan, vilket ger dem möjlighet att skriva foruminlägg (Trådar) som andra användare sedan kan kommentera. Användare kan visa intresse (gilla) trådar, vilket sedan visas både på tråden och på deras användarsida. Trådarna kan ges taggar för att visa vad de handlar om. Användare kan även lägga till varandra som vänner (Kompisar), vilket sedan visas på deras användarsida. 
+Användare ska kunna registrera konton på hemsidan, vilket ger dem möjlighet att lägga upp post innehållande bilder och en komponentlista för sina cyklar som andra användare sedan kan gilla och kommentera på. 
 
 ## 2. Vyer
 

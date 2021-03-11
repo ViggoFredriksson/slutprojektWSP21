@@ -6,7 +6,7 @@ require 'bcrypt'
 enable :sessions
 
 get('/') do
-  slim(:home)
+  slim(:register)
 end
 
 get('/showlogin') do
@@ -19,25 +19,24 @@ post('/login') do
   db = SQLite3::Database.new('db/bs.db')
   db.results_as_hash = true
   usernames = db.execute("SELECT username FROM users")
-
-  p usernames #remove 
-
+  
+  # felhantering av inloggning
   if usernames.include?({"username" => username}) == true
     result = db.execute("SELECT * FROM users WHERE username = ?", username).first
     pwdigest = result["pwdigest"]
     id = result["id"]
     if BCrypt::Password.new(pwdigest) == password
       session[:id] = id
-      redirect ('/todos')
+      redirect ('/')
     else
-      redirect('/wronginfo')
+      redirect('/wronginfo') #Visa felmeddelande istället
     end
   else
-    redirect('/wronginfo')
+    redirect('/wronginfo') #Visa felmeddelande istället
   end
 end
 
-#Ful felhantering. Inserta istället felmeddelande på samma sida.
+  #Ful felhantering. Inserta istället felmeddelande på samma sida.
 get('/wronginfo') do
   slim(:wronginfo)
 end
@@ -47,13 +46,17 @@ post('/users/new') do
   password = params[:password]
   password_confirm = params[:password_confirm]
 
+  if usernames.include?({"username" => username}) == true
+    puts "User already exists!"
+  end
+
   if password == password_confirm
     password_digest = BCrypt::Password.create(password)
     db = SQLite3::Database.new('db/bs.db')
     db.execute("INSERT INTO users (username,pwdigest) VALUES (?, ?)",username,password_digest)
-    redirect('/')
+    redirect('/showlogin')
   else
-    "Lösenorden matchar inte!"
+    "Passwords do not match"
   end
 end
 
