@@ -19,7 +19,6 @@ post('/login') do
   db = SQLite3::Database.new('db/bs.db')
   db.results_as_hash = true
   usernames = db.execute("SELECT username FROM users")
-  
   # felhantering av inloggning
   if usernames.include?({"username" => username}) == true
     result = db.execute("SELECT * FROM users WHERE username = ?", username).first
@@ -27,7 +26,7 @@ post('/login') do
     id = result["id"]
     if BCrypt::Password.new(pwdigest) == password
       session[:id] = id
-      redirect ('/')
+      redirect ('/posts')
     else
       redirect('/wronginfo') #Visa felmeddelande istället
     end
@@ -63,7 +62,7 @@ end
 get('/posts') do
   db = SQLite3::Database.new("db/bs.db")
   db.results_as_hash = true
-  result = db.execute("SELECT * FROM albums")
+  result = db.execute("SELECT * FROM posts")
   p result
   slim(:"posts/index",locals:{forum:result})
 end
