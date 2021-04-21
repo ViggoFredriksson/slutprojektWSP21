@@ -2,9 +2,9 @@
 
 ## 1. Projektbeskrivning
 
-Jag bygger en hemsida där individer kan visa upp sina cyklar. 
+Jag bygger en hemsida där individer kan dela citat. 
 
-Användare ska kunna registrera konton på hemsidan, vilket ger dem möjlighet att lägga upp post innehållande bilder och en komponentlista för sina cyklar som andra användare sedan kan gilla och kommentera på. 
+Användare ska kunna registrera konton på hemsidan, vilket ger dem möjlighet att lägga upp posts innehållande citat med en namn på vem de citerarsom andra användare sedan kan gilla. 
 
 ## 2. Vyer
 
