@@ -9,6 +9,10 @@ get('/') do
   slim(:register)
 end
 
+get('/dokumentation') do
+  slim(:dokumentation)
+end
+
 get('/showlogin') do
   slim(:login)
 end

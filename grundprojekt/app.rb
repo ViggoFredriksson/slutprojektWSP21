@@ -15,6 +15,10 @@ get('/') do
   slim(:index)
 end
 
+get('/dokumentation') do
+  slim(:dokumentation)
+end
+
 get('/users') do
   slim(:'users/index')
 end
