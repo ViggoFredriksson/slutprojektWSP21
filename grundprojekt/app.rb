@@ -4,10 +4,12 @@ require 'slim'
 enable :sessions
 
 username = "John Smith"
+loginstatus = false
 
 before do
   session["password"] = "abc123"
   session["user"] = username
+  session["logged_in"] = loginstatus
 end
 
 #Startsida
@@ -27,49 +29,67 @@ get('/login') do
   slim(:login)
 end
 
-get ('/error') do
-  slim(:error)
+get('/errors/wrongpw') do
+  slim(:'errors/wrongpw')
 end
 
-post("/login") do
+get('/errors/not_loggedin') do
+  slim(:'errors/not_loggedin')
+end
+
+post('/login') do
   if params["username"] == session["user"] && params["password"] == session["password"]
-    session["logged_in"] = true
+    loginstatus = true
     redirect('/users')
   else
-    session["logged_in"] = false
-    redirect('/error')
+    loginstatus = false
+    redirect('/errors/wrongpw')
   end
-
 end
 
 #Visa formulär som lägger till en note
 get('/notes/new') do
-  slim(:"notes/new")
+  if session["logged_in"] == true
+    slim(:"notes/new")
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 #Skapa note
 post('/notes/create') do
+  if session["logged_in"] == true
     post = [params["ny_title"], params["ny_content"], params["author"]]
-  if session["notes"] == nil
-    session["notes"] = []
-    session["notes"] << post
+    if session["notes"] == nil
+      session["notes"] = []
+      session["notes"] << post
+    else
+      session["notes"] << post
+    end
+    redirect('/notes')
   else
-    session["notes"] << post
+    redirect('/errors/not_loggedin')
   end
-
-  redirect('/notes')
 end
 
 post('/notes/delete') do
-  id = params["id"].to_i
-  session["notes"].delete_at(id)
-  p id
-  redirect('/notes')
+  if session['logged_in'] == true
+    id = params["id"].to_i
+    session["notes"].delete_at(id)
+    p id
+    redirect('/notes')
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 post('/notes/destroy') do
-  session["notes"] = nil
-  redirect('/notes')
+  if session['logged_in'] == true
+    session["notes"] = nil
+    redirect('/notes')
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 #Visa alla notes
@@ -79,8 +99,11 @@ end
 
 #Visa formulär som byter användarnamn
 get('/users/edit') do
-  p session["user"]
-  slim(:"users/edit")
+  if session['logged_in'] == true
+    slim(:"users/edit")
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 #Uppdaterar användarnamn
@@ -93,8 +116,6 @@ post('/users/update/:param') do
     session["bio"] = params["ny_bio"]
   end
   session["userinfo"] = [username, session["age"], session["bio"]]
-  
-  #p session["user"]
   redirect('/users/edit')
 end
 
@@ -106,7 +127,5 @@ post('/users/delete/:param') do
     session["bio"] = nil
   end
   session["userinfo"] = [username, session["age"], session["bio"]]
-
-  #p session["user"]
   redirect('/users/edit')
 end

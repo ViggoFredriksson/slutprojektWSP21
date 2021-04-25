@@ -2,7 +2,8 @@
     h1 Welcome #{session["user"]}
 - else Welcome
 
-h2 Användarinformation
+- if session["userinfo"][1] != nil && session["userinfo"][2] != nil
+    h2 Användarinformation
 -if session["userinfo"]
   -if session["userinfo"][1]
     h3 = "Ålder:" 
