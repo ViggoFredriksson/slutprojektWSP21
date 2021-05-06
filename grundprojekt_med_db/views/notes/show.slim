@@ -1,0 +1,29 @@
+h2 Här är dina notes, #{session[:id]}
+
+- if session["notes"] && session["notes"] != []
+  - session["notes"].each_with_index do |notes, i|
+    h3 = notes[0]
+    p = notes[1] 
+    p = "Author: #{notes[2]}"
+    form action="/notes/delete" method="POST"
+      input type="hidden" name="id" value="#{i}"
+      input type="submit" value="DELeTE NOTe!"
+  form action="/notes/destroy" method="POST"
+    input type="submit" value="DESTrOY ALl NOTeS!" 
+- else
+    p  
+      | Det finns inga notes ännu. 
+      a href="/notes/new" Skapa ny
+
+
+- notes.each_with_index do |notes, i|
+    h3 = notes[0]
+    p = notes[1] 
+    p = "Author: #{notes[2]}"
+
+    form action="/notes/delete" method="POST"
+      input type="hidden" name="id" value="#{i}"
+      input type="submit" value="DELeTE NOTe!"
+      
+  form action="/notes/destroy" method="POST"
+    input type="submit" value="DESTrOY ALl NOTeS!"     

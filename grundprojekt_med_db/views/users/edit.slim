@@ -1,0 +1,32 @@
+h2 Formulär för att byta användarnamn
+
+p Nuvarande användarnamn: #{session["user"]}
+form action="/users/update/name" method="POST"
+    input type="text" name="nytt_namn" placeholder="Ditt nya namn"
+    input type="submit" value="Byt namn"
+
+-if session["userinfo"]
+    -if session["userinfo"][1] 
+        p Nuvarande ålder: #{session["userinfo"][1]} år
+    -else
+        p Nuvarande ålder är okänd
+form action="/users/update/age" method="POST"
+    input type="text" name="ny_age" placeholder="Ny ålder"
+    input type="submit" value="Byt ålder"
+
+form action="/users/delete/age" method="POST"
+        input type="submit" value="Ta bort ålder"
+
+-if session["userinfo"]
+    -if session["userinfo"][2] 
+        p Nuvarande bio:
+        br #{session["userinfo"][2]}
+    -else
+        p Nuvarande bio är tom 
+form action="/users/update/bio" method="POST"
+
+    input type="text" name="ny_bio" placeholder="Nya bigografi"
+    input type="submit" value="Byt bio"
+
+form action="/users/delete/bio" method="POST"
+        input type="submit" value="Ta bort bio"
