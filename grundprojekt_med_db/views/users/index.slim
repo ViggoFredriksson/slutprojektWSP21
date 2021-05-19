@@ -4,12 +4,13 @@
 
 h2 Användarinformation
 -if session["userinfo"]
-  -if session["userinfo"][1]
+  -if session["userinfo"][3]
     h3 = "Ålder:" 
-    p = "#{session["userinfo"][1]} år"
-  -if session["userinfo"][2]
+    p = "#{session["userinfo"][3]} år"
+  -if session["userinfo"][4]
     h3 = "Bio:"
-    p = "#{session["userinfo"][2]}"
+    p = "#{session["userinfo"][4]}"
+  
 
 h2 Instruktioner
 
@@ -32,7 +33,7 @@ ol
   li Börja med att studera filerna, slim, app.rb och få en blick i hur det hänger ihop
   li Skapa sedan en sida med ett nytt formulär som ändrar username
   li Utveckla note-formuläret, spara tex även rubrik för note och författare
-  li Skapa ett formulär som tömmer hela notes-listan (eller bara en note)
+  li 1kapa ett formulär som tömmer hela notes-listan (eller bara en note)
 
 h3 Del 2: Inlogg
 

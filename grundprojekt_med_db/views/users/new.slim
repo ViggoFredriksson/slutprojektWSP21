@@ -1,7 +1,11 @@
 h2 Här registerar du dig!
 
-form action="users/new" method="POST"
+form action="/users/create" method="POST"
     input type="text" name="username" placeholer="Enter username"
     input type="password" name="password" placeholer="Enter password"
     input type="password" name="password_confirm" placeholer="Confirm password"
     input type="submit" value="Register user"
+
+br
+
+a href="/login" Har du redan ett konto? Logga in!

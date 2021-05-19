@@ -5,11 +5,12 @@ require 'bcrypt'
 
 enable :sessions
 
-username = "John Smith"
+salt = "returntomonkey"
+id=""
+username = ""
 loginstatus = false
 
 before do
-  session["password"] = "abc123"
   session["user"] = username
   session["logged_in"] = loginstatus
 end
@@ -26,47 +27,49 @@ def getdbhash()
   return db
 end
 
+def checkusername(id)
+  result = getdbhash().execute("SELECT username FROM users WHERE id=?", id)
+  return result[0]["username"]
+end
+
+def finduserinfo(username)
+  return getdbhash().execute("SELECT * FROM users WHERE username = ?", username).first
+end
+
+def findallusernames()
+  return getdbhash().execute("SELECT username FROM users")
+end
+
 #Startsida
 get('/') do
   slim(:index)
 end
 
+#Dokumentationssida
 get('/dokumentation') do
   slim(:dokumentation)
 end
 
-get('/users') do
-  slim(:'users/index')
-end
-
+#Visar loginsida
 get('/login') do
   slim(:login)
 end
 
-# post('/login') do
-#   if params["username"] == session["user"] && params["password"] == session["password"]
-#     loginstatus = true
-#     redirect('/users')
-#   else
-#     loginstatus = false
-#     redirect('/errors/wrongpw')
-#   end
-# end
-
+#Fixelifixar login från formulär
 post('/login') do
   username = params[:username]
   password = params[:password]
-  db = SQLite3::Database.new('db/gp.db')
-  db.results_as_hash = true
-  usernames = db.execute("SELECT username FROM users")
+  db = getdbhash
+  usernames = findallusernames
   p usernames
   if usernames.include?({"username" => username}) == true
-    result = db.execute("SELECT * FROM users WHERE username = ?", username).first
+    result = finduserinfo(username)
     pwdigest = result["pwdigest"]
     id = result["id"]
     session['userinfo'] = result
-    if BCrypt::Password.new(pwdigest) == password
+    if BCrypt::Password.new(pwdigest) == password + salt
       session[:id] = id
+      loginstatus = true
       redirect ('/users')
     else
       redirect('/errors/wrongpw')
@@ -76,45 +79,75 @@ post('/login') do
   end
 end
 
-get('/users/new') do
-  slim(:login)
-end
-
-post('/users/create') do
-  username = params[:username]
-  password = params[:password]
-  password_confirm = params[:password_confirm]
-
-  if password == password_confirm
-    password_digest = BCrypt::Password.create(password)
-    db = SQLite3::Database.new('db/gp.db')
-    db.execute("INSERT INTO users (username,pwdigest) VALUES (?, ?)",username,password_digest)
-    redirect('/login')
+#Visar users/index, som är sidans "landing page"
+get('/users') do
+  if session["logged_in"] == true
+    slim(:"users/index")
   else
-    "Passwords do not match"
+    redirect('/errors/not_loggedin')
   end
 end
 
+#Visar users/new, där man registrerar nya konton
+get('/users/new') do
+  slim(:'users/new')
+end
+
+#Fixelifixar kontoregistrering via formulär 
+post('/users/create') do
+  db = getdbhash
+  username = params[:username]
+  password = params[:password]
+  password_confirm = params[:password_confirm]
+  usernames = findallusernames
+  if username == "" || password == ""
+    redirect('/errors/password_empty')
+  end
+  if !usernames.include?({"username" => username})  
+    if password == password_confirm
+      password = password + salt
+      password_digest = BCrypt::Password.create(password)
+      db = SQLite3::Database.new('db/gp.db')
+      db.execute("INSERT INTO users (username,pwdigest) VALUES (?, ?)",username,password_digest)
+      redirect('/login')
+    else
+      "Passwords do not match"
+    end
+  else
+    redirect('/errors/user_not_unique')
+  end
+end
+
+#Hit kommer du om du skriver in fel lösen eller användarnamn
 get('/errors/wrongpw') do
   slim(:'errors/wrongpw')
 end
 
+#Denna sida visas om du failar en loginstatus-check
 get('/errors/not_loggedin') do
   slim(:'errors/not_loggedin')
 end
 
-#Visa alla notes
-# get('/notes') do
-#   slim(:"notes/show")
-# end
+#Denna sida visas om någon försöker registrera ett konto med ett användarnamn som är upptaget
+get('/errors/user_not_unique') do
+  slim(:'errors/user_not_unique')
+end
+#Visas om någon försöker registrera ett konto utan att skriva in lösenord
+get('/errors/password_empty') do
+  slim(:'errors/password_empty')
+end
 
+#Visa alla notes
 get('/notes') do
-  id = session[:id].to_i
-  db = SQLite3::Database.new('db/gp.db')
-  db.results_as_hash = true
-  result = db.execute("SELECT * FROM notes WHERE user_id = ?", id)
-  p "Alla notes från result #{result}"
-  slim(:"notes/show", locals:{notes:result})
+  if session["logged_in"] == true
+    id = session[:id].to_i
+    db = getdbhash
+    result = db.execute("SELECT * FROM notes WHERE user_id = ?", id)
+    p "Alla notes från result #{result}"
+    slim(:"notes/show", :locals=>{result:result})
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 #Visa formulär som lägger till en note
@@ -127,35 +160,31 @@ get('/notes/new') do
 end
 
 #Skapa note
-# post('/notes/create') do
-#   if session["logged_in"] == true
-#     post = [params["ny_title"], params["ny_content"], params["author"]]
-#     if session["notes"] == nil
-#       session["notes"] = []
-#       session["notes"] << post
-#     else
-#       session["notes"] << post
-#     end
-#     redirect('/notes')
-#   else
-#     redirect('/errors/not_loggedin')
-#   end
-# end
-
 post('/notes/create') do
-  post = [params["ny_title"], params["ny_content"], params["author"]]
-  user_id = session[:id].to_i
-  db = SQLite3::Database.new('db/gp.db')
-  db.execute("INSERT INTO notes (post, user_id) VALUES (?, ?)",post, user_id)
-  redirect('/notes/show')
+  if session["logged_in"] == true
+    db = getdb
+    user_id = session[:id].to_i
+    title = params["title"]
+    content = params["content"]
+    p title
+    p content
+    if title != "" || content != ""
+      db.execute("INSERT INTO notes (title,content, user_id) VALUES (?,?,?)",title, content,user_id)
+      redirect('/notes')
+    else
+      "Cringe det får inte var nil"
+    end
+  else
+    redirect('/errors/not_loggedin')
+  end
 end
 
 #Ta bort en note
-post('/notes/delete') do
+post('/notes/:id/delete') do
   if session['logged_in'] == true
-    id = params["id"].to_i
-    session["notes"].delete_at(id)
-    p id
+    db = getdb
+    id = params["id"]
+    db.execute("DELETE FROM notes WHERE id=?", id)
     redirect('/notes')
   else
     redirect('/errors/not_loggedin')
@@ -165,7 +194,9 @@ end
 #Ta bort alla notes
 post('/notes/destroy') do
   if session['logged_in'] == true
-    session["notes"] = nil
+    db = getdb
+    id = session["id"]
+    db.execute("DELETE FROM notes WHERE user_id=?", id)
     redirect('/notes')
   else
     redirect('/errors/not_loggedin')
@@ -183,24 +214,43 @@ end
 
 #Uppdaterar användarnamn
 post('/users/update/:param') do
-  if params["param"] == "name"
-    username = params["nytt_namn"]
-  elsif params["param"] == "age"
-    session["age"] = params["ny_age"]
-  elsif params["param"] == "bio"
-    session["bio"] = params["ny_bio"]
+  if session['logged_in'] == true
+    db = getdb
+    if params["param"] == "name"
+      username = params["nytt_namn"]
+      db.execute("UPDATE users SET username=? WHERE id=?", username,id)
+    elsif params["param"] == "age"
+      ny_age = params["ny_age"]
+      db.execute("UPDATE users SET age=? WHERE id=?", ny_age,id)
+    elsif params["param"] == "bio"
+      ny_bio = params["ny_bio"]
+      db.execute("UPDATE users SET bio=? WHERE id=?", ny_bio,id)
+    end
+    session["userinfo"] = finduserinfo(username)
+    redirect('/users/edit')
+  else
+    redirect('/errors/not_loggedin')
   end
-  session["userinfo"] = [username, session["age"], session["bio"]]
-  redirect('/users/edit')
 end
 
+#Tar bort användarinfo
 post('/users/delete/:param') do
-  username = session["user"]
-  if params["param"] == "age"
-    session["age"] = nil
-  elsif params["param"] == "bio"
-    session["bio"] = nil
+  if session['logged_in'] == true
+    db = getdb
+    username = session["user"]
+    if params["param"] == "age"
+      no_age = nil
+      db.execute("UPDATE users SET age=? WHERE id=?", no_age,id)
+    elsif params["param"] == "bio"
+      no_bio = nil
+      db.execute("UPDATE users SET bio=? WHERE id=?", no_bio,id)
+    end
+    session["userinfo"] = finduserinfo(username)
+    redirect('/users/edit')
+  else
+    redirect('/errors/not_loggedin')
   end
-  session["userinfo"] = [username, session["age"], session["bio"]]
-  redirect('/users/edit')
 end
+
+
+

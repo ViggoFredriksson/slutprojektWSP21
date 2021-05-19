@@ -1,7 +1,6 @@
 h2 Formulär för ny note
 
 form action="/notes/create" method="POST"
-  input type="text" name="ny_title" placeholder="Rubrik"
-  input type="text" name="ny_content" placeholder="Note-text"
-  input type="hidden" name="author" value="#{session['userinfo']['username']}"
+  input type="text" name="title" placeholder="Rubrik"
+  input type="text" name="content" placeholder="Note-text"
   input type="submit" value="Skapa"
