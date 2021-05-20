@@ -37,6 +37,7 @@ get('/errors/not_loggedin') do
   slim(:'errors/not_loggedin')
 end
 
+
 post('/login') do
   if params["username"] == session["user"] && params["password"] == session["password"]
     loginstatus = true

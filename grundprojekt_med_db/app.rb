@@ -27,15 +27,18 @@ def getdbhash()
   return db
 end
 
+#Hittar användarnamnet som tillhör ett användar-id i databasen
 def checkusername(id)
   result = getdbhash().execute("SELECT username FROM users WHERE id=?", id)
   return result[0]["username"]
 end
 
+#Hämtar all användardata kopplad till ett användarnamn i databasen
 def finduserinfo(username)
   return getdbhash().execute("SELECT * FROM users WHERE username = ?", username).first
 end
 
+#Hämtar alla användarnamn i databasen
 def findallusernames()
   return getdbhash().execute("SELECT username FROM users")
 end
@@ -118,91 +121,6 @@ post('/users/create') do
   end
 end
 
-#Hit kommer du om du skriver in fel lösen eller användarnamn
-get('/errors/wrongpw') do
-  slim(:'errors/wrongpw')
-end
-
-#Denna sida visas om du failar en loginstatus-check
-get('/errors/not_loggedin') do
-  slim(:'errors/not_loggedin')
-end
-
-#Denna sida visas om någon försöker registrera ett konto med ett användarnamn som är upptaget
-get('/errors/user_not_unique') do
-  slim(:'errors/user_not_unique')
-end
-#Visas om någon försöker registrera ett konto utan att skriva in lösenord
-get('/errors/password_empty') do
-  slim(:'errors/password_empty')
-end
-
-#Visa alla notes
-get('/notes') do
-  if session["logged_in"] == true
-    id = session[:id].to_i
-    db = getdbhash
-    result = db.execute("SELECT * FROM notes WHERE user_id = ?", id)
-    p "Alla notes från result #{result}"
-    slim(:"notes/show", :locals=>{result:result})
-  else
-    redirect('/errors/not_loggedin')
-  end
-end
-
-#Visa formulär som lägger till en note
-get('/notes/new') do
-  if session["logged_in"] == true
-    slim(:"notes/new")
-  else
-    redirect('/errors/not_loggedin')
-  end
-end
-
-#Skapa note
-post('/notes/create') do
-  if session["logged_in"] == true
-    db = getdb
-    user_id = session[:id].to_i
-    title = params["title"]
-    content = params["content"]
-    p title
-    p content
-    if title != "" || content != ""
-      db.execute("INSERT INTO notes (title,content, user_id) VALUES (?,?,?)",title, content,user_id)
-      redirect('/notes')
-    else
-      "Cringe det får inte var nil"
-    end
-  else
-    redirect('/errors/not_loggedin')
-  end
-end
-
-#Ta bort en note
-post('/notes/:id/delete') do
-  if session['logged_in'] == true
-    db = getdb
-    id = params["id"]
-    db.execute("DELETE FROM notes WHERE id=?", id)
-    redirect('/notes')
-  else
-    redirect('/errors/not_loggedin')
-  end
-end
-
-#Ta bort alla notes
-post('/notes/destroy') do
-  if session['logged_in'] == true
-    db = getdb
-    id = session["id"]
-    db.execute("DELETE FROM notes WHERE user_id=?", id)
-    redirect('/notes')
-  else
-    redirect('/errors/not_loggedin')
-  end
-end
-
 #Visa formulär som byter användarnamn
 get('/users/edit') do
   if session['logged_in'] == true
@@ -251,6 +169,98 @@ post('/users/delete/:param') do
     redirect('/errors/not_loggedin')
   end
 end
+
+#Hit kommer du om du skriver in fel lösen eller användarnamn
+get('/errors/wrongpw') do
+  slim(:'errors/wrongpw')
+end
+
+#Denna sida visas om du failar en loginstatus-check
+get('/errors/not_loggedin') do
+  slim(:'errors/not_loggedin')
+end
+
+#Denna sida visas om någon försöker registrera ett konto med ett användarnamn som är upptaget
+get('/errors/user_not_unique') do
+  slim(:'errors/user_not_unique')
+end
+
+#Visas om någon försöker registrera ett konto utan att skriva in lösenord eller användarnamn
+get('/errors/password_empty') do
+  slim(:'errors/password_empty')
+end
+
+#Visas om någon försöker skapa en note utan att skriva in något
+get('/errors/note_empty') do
+  slim(:'errors/note_empty')
+end
+
+#Visa alla notes
+get('/notes') do
+  if session["logged_in"] == true
+    id = session[:id].to_i
+    db = getdbhash
+    result = db.execute("SELECT * FROM notes WHERE user_id = ?", id)
+    p "Alla notes från result #{result}"
+    slim(:"notes/show", :locals=>{result:result})
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
+#Visa formulär som lägger till en note
+get('/notes/new') do
+  if session["logged_in"] == true
+    slim(:"notes/new")
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
+#Skapa note
+post('/notes/create') do
+  if session["logged_in"] == true
+    db = getdb
+    user_id = session[:id].to_i
+    title = params["title"]
+    content = params["content"]
+    p title
+    p content
+    if title != "" || content != ""
+      db.execute("INSERT INTO notes (title,content, user_id) VALUES (?,?,?)",title, content,user_id)
+      redirect('/notes')
+    else
+      redirect('/error/note_empty')
+    end
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
+#Ta bort en note
+post('/notes/:id/delete') do
+  if session['logged_in'] == true
+    db = getdb
+    id = params["id"]
+    db.execute("DELETE FROM notes WHERE id=?", id)
+    redirect('/notes')
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
+#Ta bort alla notes
+post('/notes/destroy') do
+  if session['logged_in'] == true
+    db = getdb
+    id = session["id"]
+    db.execute("DELETE FROM notes WHERE user_id=?", id)
+    redirect('/notes')
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
 
 
 
