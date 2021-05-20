@@ -43,6 +43,31 @@ def findallusernames()
   return getdbhash().execute("SELECT username FROM users")
 end
 
+#Hit kommer du om du skriver in fel lösen eller användarnamn
+get('/errors/wrongpw') do
+  slim(:'errors/wrongpw')
+end
+
+#Denna sida visas om du failar en loginstatus-check
+get('/errors/not_loggedin') do
+  slim(:'errors/not_loggedin')
+end
+
+#Denna sida visas om någon försöker registrera ett konto med ett användarnamn som är upptaget
+get('/errors/user_not_unique') do
+  slim(:'errors/user_not_unique')
+end
+
+#Visas om någon försöker registrera ett konto utan att skriva in lösenord eller användarnamn
+get('/errors/password_empty') do
+  slim(:'errors/password_empty')
+end
+
+#Visas om någon försöker skapa en note utan att skriva in något
+get('/errors/note_empty') do
+  slim(:'errors/note_empty')
+end
+
 #Startsida
 get('/') do
   slim(:index)
@@ -65,6 +90,9 @@ post('/login') do
   db = getdbhash
   usernames = findallusernames
   p usernames
+  if username == "" || password == ""
+    redirect('/errors/wrongpw')
+  end
   if usernames.include?({"username" => username}) == true
     result = finduserinfo(username)
     pwdigest = result["pwdigest"]
@@ -86,6 +114,18 @@ end
 get('/users') do
   if session["logged_in"] == true
     slim(:"users/index")
+  else
+    redirect('/errors/not_loggedin')
+  end
+end
+
+post('/users/logout') do
+  if session["logged_in"] == true
+    id=""
+    username = ""
+    loginstatus = false
+    session.destroy
+    redirect('/login')
   else
     redirect('/errors/not_loggedin')
   end
@@ -170,30 +210,6 @@ post('/users/delete/:param') do
   end
 end
 
-#Hit kommer du om du skriver in fel lösen eller användarnamn
-get('/errors/wrongpw') do
-  slim(:'errors/wrongpw')
-end
-
-#Denna sida visas om du failar en loginstatus-check
-get('/errors/not_loggedin') do
-  slim(:'errors/not_loggedin')
-end
-
-#Denna sida visas om någon försöker registrera ett konto med ett användarnamn som är upptaget
-get('/errors/user_not_unique') do
-  slim(:'errors/user_not_unique')
-end
-
-#Visas om någon försöker registrera ett konto utan att skriva in lösenord eller användarnamn
-get('/errors/password_empty') do
-  slim(:'errors/password_empty')
-end
-
-#Visas om någon försöker skapa en note utan att skriva in något
-get('/errors/note_empty') do
-  slim(:'errors/note_empty')
-end
 
 #Visa alla notes
 get('/notes') do

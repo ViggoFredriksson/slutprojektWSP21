@@ -2,6 +2,9 @@
     h1 Välkommen #{session["user"]}
 - else Välkommen
 
+form action="/users/logout" method="post"
+    input type="submit" value="Logga ut"
+
 h2 Användarinformation
 -if session["userinfo"]
   -if session["userinfo"][3]
